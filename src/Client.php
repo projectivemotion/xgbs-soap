@@ -17,16 +17,35 @@ namespace projectivemotion\xgbs_soap;
 
 class Client
 {
-    const wsdl  =   'http://test.xgbs.net/PublicWSDL/Base/v2.0/Basic.wsdl';
-    const wsdl_hotelavail   =   'http://test.xgbs.net/PublicWSDL/Hotel/v2.0/HotelAvailability.wsdl';
+    private $wsdl  =   [
+            'test'  =>  [
+                'basic' => 'http://test.xgbs.net/PublicWSDL/Base/v2.0/Basic.wsdl',
+                'hotelavailability' =>  'http://test.xgbs.net/PublicWSDL/Hotel/v2.0/HotelAvailability.wsdl'
+            ],
+            'production' => [
+                'basic' =>  'http://www.xgbs.net/PublicWSDL/Base/v2.0/Basic.wsdl',
+                'hotelavailability' =>  'http://www.xgbs.net/PublicWSDL/Hotel/v2.0/HotelAvailability.wsdl'
+            ]
+        ];
 
     protected $session  =   '';
 
     protected $client   =   NULL;
 
-    public function createClient($wsd)
+    /**
+     * Return a wsdl url
+     *
+     * @param $wsdl
+     * @param string $mode test|production
+     */
+    public function getWsdlUrl($wsdl, $mode    =   'production')
     {
-        return new \SoapClient($wsd);
+        return $this->wsdl[$mode][$wsdl];
+    }
+
+    public function createClient($wsdlurl)
+    {
+        return new \SoapClient($wsdlurl);
     }
 
     public function call($method, $args)
@@ -56,7 +75,7 @@ class Client
             'DistributionChannelID' => $distributionChannelID,
             "Language" => $lang
             ];
-        $session    =   $this->wsd(self::wsdl)->call('Login', $Request);
+        $session    =   $this->wsdl('basic')->call('Login', $Request);
 
         $this->setSession($session);
 
@@ -65,7 +84,7 @@ class Client
 
     public function getAvailableHotels(HotelSearch $search)
     {
-        $response   =   $this->wsd(self::wsdl_hotelavail)
+        $response   =   $this->wsdl('hotelavailability')
                         ->call('getAvailableHotels', $this->session, $search->getArray());
 
         return $response;
@@ -76,9 +95,10 @@ class Client
         $this->session = $session;
     }
 
-    public function wsd($wsd)
+    public function wsdl($wsd, $mode = 'production')
     {
-        $this->client   =   $this->createClient($wsd);
+        $url    =   $this->getWsdlUrl($wsd, $mode);
+        $this->client   =   $this->createClient($url);
 
         return $this;
     }

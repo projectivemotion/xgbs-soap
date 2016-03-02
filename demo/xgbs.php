@@ -24,22 +24,33 @@ foreach($autoload_files as $autoload_file)
 }
 // end autoloader finder
 
-if($argc < 5)
-    die("$argv[0] distributionchannel language username password checkin checkout");
+if($argc < 6)
+    die("$argv[0] distributionchannel language username password checkin checkout citycode");
+
+$distributionChannel    =   $argv[1];
+$language               =   $argv[2];
+$username               =   $argv[3];
+$password               =   $argv[4];
+$checkin                =   $argv[5];
+$checkout               =   $argv[6];
+$citycode               =   $argv[7];
 
 $client =   new projectivemotion\xgbs_soap\Client();
 
-$response = $client->Login($argv[1], $argv[2], $argv[3], $argv[4]);
+$response = $client->Login($distributionChannel, $language, $username, $password);
 
 $search =   new \projectivemotion\xgbs_soap\HotelSearch();
-$search->setCityCode(2191230);
-$search->setCheckIn($argv[5]);
-$search->setCheckOut($argv[6]);
+$search->setCheckIn($checkin);
+$search->setCheckOut($checkout);
+$search->setCityCode($citycode);
 $search->setSearchRoomParams();
 $search->setRoomCount(1);
 $search->setAdults(2);
 $search->setChildren(0);
 $search->setNumHotels(5);
 
-$hotels =   $client->getAvailableHotels($search);
-var_dump($hotels);
+$results =   $client->getAvailableHotels($search);
+
+printf("Found %d hotels. Hotel 1: %s\n", $results->HotelsCount,
+        $results->Hotels[0]->PropertyName);
+
