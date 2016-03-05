@@ -48,22 +48,28 @@ class Client
         return new \SoapClient($wsdlurl);
     }
 
+    /**
+     * @throws \SoapFault
+     * @param $method
+     * @param $args
+     * @return mixed
+     */
     public function call($method, $args)
     {
         $client =   $this->client;
 
-        try {
+//        try {
             $f_args =   func_get_args();
 
             array_shift($f_args);
 
             $response = call_user_func_array(array($client, $method), $f_args);
 
-        }catch(\SoapFault $f)
-        {
-            print_r($f);
-            exit;
-        }
+//        }catch(\SoapFault $f)
+//        {
+//            print_r($f);
+//            exit;
+//        }
         return $response;
     }
 
